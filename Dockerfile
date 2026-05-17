@@ -86,8 +86,8 @@ RUN mkdir -p /root/logs && touch /root/.no_auto_tmux
 
 WORKDIR /root
 
-# Deploy-time scripts (08-12) are NOT run here.
-# They execute when token-watcher.sh detects a GitHub token after container boot.
-#
-# Container entry point should start token-watcher.sh:
-#   /usr/local/bin/deploy/token-watcher.sh &
+# Expose ports: SSH (22), token-watcher HTTP (9191)
+EXPOSE 22 9191
+
+# Start token-watcher in background, then keep container alive
+CMD ["/bin/bash", "-c", "/usr/local/bin/deploy/token-watcher.sh & exec bash"]
