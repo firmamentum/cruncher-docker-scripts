@@ -36,15 +36,15 @@ graph LR
 
 ```bash
 # Build the base image (local COPY mode)
-docker build -t firmamentum/cruncher-base .
+docker build -t homelander0x/cruncher-base .
 
 # Push to Docker Hub
-docker push firmamentum/cruncher-base:latest
+docker push homelander0x/cruncher-base:latest
 ```
 
 ### Deploy on Vast.ai
 
-1. Create a Vast.ai instance using `firmamentum/cruncher-base:latest`
+1. Create a Vast.ai instance using `homelander0x/cruncher-base:latest`
 2. The container boots with `token-watcher.sh` running
 3. Push your GitHub token:
 
@@ -70,7 +70,7 @@ vast ssh <instance_id> "tail -f /root/logs/repo-setup.log"
 ### Verify
 
 ```bash
-docker run firmamentum/cruncher-base bash -c \
+docker run homelander0x/cruncher-base bash -c \
   "nvcc --version && go version && conan --version && psql --version && redis-cli --version"
 ```
 
@@ -109,8 +109,8 @@ To update an individual script without rebuilding the entire image:
 # 1. Edit the script locally
 # 2. Push to GitHub
 # 3. Rebuild (Docker cache handles unchanged layers)
-docker build -t firmamentum/cruncher-base .
-docker push firmamentum/cruncher-base:latest
+docker build -t homelander0x/cruncher-base .
+docker push homelander0x/cruncher-base:latest
 ```
 
 For deploy-time scripts (08–12), you can update them on a running container:
