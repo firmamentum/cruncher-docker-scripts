@@ -89,9 +89,10 @@ RUN cat > /root/onstart.sh << 'ONSTART'
 #!/bin/bash
 # Auto-start services on container boot
 
-# Fix .bash_profile permission (Vast.ai creates it as root-only,
-# which causes "Permission denied" spam on su - postgres calls)
-chmod 644 /root/.bash_profile 2>/dev/null || true
+# Fix /root directory permission — Vast.ai's su - postgres sets HOME=/root
+# but /root is 700 so postgres can't traverse it to read .bash_profile.
+# chmod 711 allows traversal without exposing directory listing.
+chmod 711 /root
 
 # Start Redis
 if command -v redis-server &>/dev/null && [ -f /etc/redis/redis.conf ]; then
