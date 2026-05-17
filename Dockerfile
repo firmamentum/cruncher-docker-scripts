@@ -84,10 +84,14 @@ RUN ${DEPLOY_DIR}/07-setup-redis.sh
 
 RUN mkdir -p /root/logs && touch /root/.no_auto_tmux
 
+# Pre-create onstart.sh — Vast.ai automatically runs this on boot
+RUN printf '#!/bin/bash\n# Auto-start token-watcher daemon\n/usr/local/bin/deploy/token-watcher.sh &\n' > /root/onstart.sh && \
+    chmod +x /root/onstart.sh
+
 WORKDIR /root
 
 # Expose ports: SSH (22), token-watcher HTTP (9191)
 EXPOSE 22 9191
 
-# Start token-watcher in background, then keep container alive
+# CMD as fallback for non-Vast environments (Vast overrides this with /.launch)
 CMD ["/bin/bash", "-c", "/usr/local/bin/deploy/token-watcher.sh & exec bash"]
