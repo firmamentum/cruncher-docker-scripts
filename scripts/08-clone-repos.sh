@@ -25,12 +25,14 @@ done
 
 # --- Configure git to use token for github.com ---
 echo "Configuring git credentials..."
-git config --global url."https://oauth2:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
-git config --global url."https://oauth2:${GITHUB_TOKEN}@github.com/".insteadOf "git@github.com:"
+git config --global credential.helper store
+echo "https://oauth2:${GITHUB_TOKEN}@github.com" > /root/.git-credentials
+chmod 600 /root/.git-credentials
 
 cleanup_git_config() {
     echo "Cleaning up git credential config..."
-    git config --global --remove-section url."https://oauth2:${GITHUB_TOKEN}@github.com/" 2>/dev/null || true
+    rm -f /root/.git-credentials
+    git config --global --unset credential.helper 2>/dev/null || true
 }
 trap cleanup_git_config EXIT
 
