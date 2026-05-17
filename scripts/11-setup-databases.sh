@@ -121,12 +121,17 @@ echo "Adding remote access rules..."
     echo "host    all             $PG_DB_USER             ::/0                    scram-sha-256"
 } >> "$PG_HBA_CONF"
 
-# --- Start PostgreSQL ---
+# --- Start PostgreSQL (or verify it's already running) ---
 echo "Starting PostgreSQL..."
-su - postgres -c "$PG_BIN_DIR/pg_ctl -D $PG_DATA_DIR -l /var/log/postgresql/postgresql-$PG_VERSION-main.log start"
-sleep 5
+if su - postgres -c "$PG_BIN_DIR/pg_ctl -D $PG_DATA_DIR status" > /dev/null 2>&1; then
+    echo "PostgreSQL is already running, reloading config..."
+    su - postgres -c "$PG_BIN_DIR/pg_ctl -D $PG_DATA_DIR reload"
+else
+    su - postgres -c "$PG_BIN_DIR/pg_ctl -D $PG_DATA_DIR -l /var/log/postgresql/postgresql-$PG_VERSION-main.log start"
+    sleep 5
+fi
 
-# Verify it started
+# Verify it's running
 if ! su - postgres -c "$PG_BIN_DIR/pg_ctl -D $PG_DATA_DIR status" > /dev/null 2>&1; then
     echo "Error: PostgreSQL failed to start. Logs:" >&2
     cat "/var/log/postgresql/postgresql-$PG_VERSION-main.log" 2>/dev/null || true
