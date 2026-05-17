@@ -24,17 +24,12 @@ for env_file in /etc/profile.d/cuda-env.sh /etc/profile.d/go-env.sh; do
 done
 
 # --- Configure git to use token for github.com ---
+# Credentials are kept persistent for auto-pull-repos.sh cron job.
+# File is chmod 600 (root-only) and container is ephemeral.
 echo "Configuring git credentials..."
 git config --global credential.helper store
 echo "https://oauth2:${GITHUB_TOKEN}@github.com" > /root/.git-credentials
 chmod 600 /root/.git-credentials
-
-cleanup_git_config() {
-    echo "Cleaning up git credential config..."
-    rm -f /root/.git-credentials
-    git config --global --unset credential.helper 2>/dev/null || true
-}
-trap cleanup_git_config EXIT
 
 # --- Clone cruncher ---
 if [ -d "/root/cruncher" ]; then
