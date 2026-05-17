@@ -14,9 +14,9 @@ echo "================================================"
 
 export DEBIAN_FRONTEND=noninteractive
 
-# --- Skip if already installed ---
-if command -v psql &>/dev/null; then
-    echo "PostgreSQL already installed: $(psql --version)"
+# --- Skip if already installed (check for actual server, not the postgresql-common wrapper) ---
+if [ -d /usr/lib/postgresql ] && find /usr/lib/postgresql/ -name "postgres" -type f 2>/dev/null | grep -q .; then
+    echo "PostgreSQL server already installed."
     echo "Skipping installation."
     exit 0
 fi
