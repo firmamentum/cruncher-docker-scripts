@@ -85,8 +85,32 @@ RUN ${DEPLOY_DIR}/07-setup-redis.sh
 RUN mkdir -p /root/logs && touch /root/.no_auto_tmux
 
 # Pre-create onstart.sh — Vast.ai automatically runs this on boot
-RUN printf '#!/bin/bash\n# Auto-start token-watcher daemon\n/usr/local/bin/deploy/token-watcher.sh &\n' > /root/onstart.sh && \
-    chmod +x /root/onstart.sh
+RUN cat > /root/onstart.sh << 'ONSTART'
+#!/bin/bash
+# Auto-start services on container boot
+
+# Start Redis
+if command -v redis-server &>/dev/null && [ -f /etc/redis/redis.conf ]; then
+    redis-server /etc/redis/redis.conf
+    echo "Redis started."
+fi
+
+# Start PostgreSQL (if cluster exists)
+PG_VERSION=$(find /usr/lib/postgresql/ -maxdepth 1 -mindepth 1 -type d -printf '%f\n' 2>/dev/null | sort -V | tail -n 1)
+PG_DATA="/var/lib/postgresql/${PG_VERSION}/main"
+PG_BIN="/usr/lib/postgresql/${PG_VERSION}/bin"
+if [ -n "$PG_VERSION" ] && [ -d "$PG_DATA" ]; then
+    su - postgres -c "$PG_BIN/pg_ctl -D $PG_DATA -l /var/log/postgresql/postgresql-${PG_VERSION}-main.log start" 2>/dev/null
+    echo "PostgreSQL $PG_VERSION started."
+fi
+
+# Start token-watcher daemon
+/usr/local/bin/deploy/token-watcher.sh &
+
+# Start cron (for auto-pull)
+service cron start 2>/dev/null
+ONSTART
+RUN chmod +x /root/onstart.sh
 
 WORKDIR /root
 
