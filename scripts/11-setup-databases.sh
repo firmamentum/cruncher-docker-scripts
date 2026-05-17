@@ -105,8 +105,8 @@ echo "Configuring PostgreSQL for network access..."
 sed -i.bak1 -E "s/^#?listen_addresses\s*=.*/listen_addresses = '*'/" "$PG_CONF"
 sed -i.bak_port -E "s/^#?port\s*=.*/port = 5432/" "$PG_CONF"
 
-# --- Set initial auth to peer for setup, then switch to scram-sha-256 ---
-echo "Setting initial auth for setup (peer for local)..."
+# --- Set auth to peer for the entire setup process ---
+echo "Setting auth for setup (peer for local, md5 for host)..."
 sed -i -E \
     -e "/^local\s+all\s+all\s+/ s/(\s+)\S+$/\1peer/" \
     -e "/^host\s+all\s+all\s+127\.0\.0\.1\/32\s+/ s/(\s+)\S+$/\1md5/" \
@@ -167,19 +167,8 @@ echo "localhost:5432:*:$PG_DB_USER:$PG_DB_USER_PASSWORD" >> "$PG_PASS_FILE"
 chown postgres:postgres "$PG_PASS_FILE"
 chmod 600 "$PG_PASS_FILE"
 
-# --- Switch to scram-sha-256 auth ---
-echo "Switching to scram-sha-256 authentication..."
-sed -i -E \
-    -e "/^local\s+all\s+all\s+/ s/(\s+)\S+$/\1scram-sha-256/" \
-    -e "/^host\s+all\s+all\s+127\.0\.0\.1\/32\s+/ s/(\s+)\S+$/\1scram-sha-256/" \
-    -e "/^host\s+all\s+all\s+::1\/128\s+/ s/(\s+)\S+$/\1scram-sha-256/" \
-    "$PG_HBA_CONF"
-
-su - postgres -c "$PG_BIN_DIR/pg_ctl -D $PG_DATA_DIR reload"
-sleep 2
-
-# Verify auth works
-su - postgres -c "psql -c 'SELECT version();'"
+# Auth stays as peer for now — we switch to scram-sha-256 at the end
+# after all psql commands are done
 
 # --- Apply schema ---
 if [ -f "$QUERY_FILE" ]; then
@@ -248,6 +237,18 @@ su - postgres -c "psql -v ON_ERROR_STOP=1 --dbname \"$PG_DB_NAME\" -c \"GRANT EX
 
 echo "system_stats installed and permissions granted."
 rm -rf "$BUILD_TEMP_DIR"
+
+# --- NOW switch to scram-sha-256 auth (all setup commands done) ---
+echo "Switching to scram-sha-256 authentication..."
+sed -i -E \
+    -e "/^local\s+all\s+all\s+/ s/(\s+)\S+$/\1scram-sha-256/" \
+    -e "/^host\s+all\s+all\s+127\.0\.0\.1\/32\s+/ s/(\s+)\S+$/\1scram-sha-256/" \
+    -e "/^host\s+all\s+all\s+::1\/128\s+/ s/(\s+)\S+$/\1scram-sha-256/" \
+    "$PG_HBA_CONF"
+
+su - postgres -c "$PG_BIN_DIR/pg_ctl -D $PG_DATA_DIR reload"
+sleep 2
+echo "Authentication switched to scram-sha-256."
 
 # --- Write .env file ---
 echo "Writing .env file..."
