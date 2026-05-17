@@ -5,8 +5,8 @@
 # infrastructure. Deploy-time scripts (08-12) run AFTER the container boots
 # on Vast.ai, triggered by token-watcher.sh when a GitHub token arrives.
 #
-# Build:  docker build -t firmamentum/cruncher-base .
-# Push:   docker push firmamentum/cruncher-base:latest
+# Build:  docker build -t homelander0x/cruncher-base .
+# Push:   docker push homelander0x/cruncher-base:latest
 #
 # For development (COPY from local):
 #   docker build -t firmamentum/cruncher-base .
@@ -52,10 +52,10 @@ RUN ${DEPLOY_DIR}/01-setup-gpu.sh
 
 # Set CUDA environment (persists across RUN layers)
 ENV PATH="/usr/local/cuda/bin:/opt/nvidia/nsight-compute-cli:/usr/local/nvidia/bin:${PATH}"
-ENV LD_LIBRARY_PATH="/usr/local/nvidia/lib:/usr/local/nvidia/lib64:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/usr/local/nvidia/lib:/usr/local/nvidia/lib64"
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
-ENV LIBRARY_PATH="/usr/local/cuda/lib64/stubs:${LIBRARY_PATH}"
+ENV LIBRARY_PATH="/usr/local/cuda/lib64/stubs"
 
 # 02 — System packages, timezone, git config, speedtest
 RUN ${DEPLOY_DIR}/02-setup-system.sh

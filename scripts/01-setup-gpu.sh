@@ -66,9 +66,9 @@ apt-mark hold ${NV_LIBCUBLAS_DEV_PACKAGE_NAME} ${NV_LIBNCCL_DEV_PACKAGE_NAME}
 # --- Set environment variables for subsequent scripts ---
 ENV_FILE="/etc/profile.d/cuda-env.sh"
 cat > "$ENV_FILE" << 'EOF'
-export PATH="/usr/local/cuda/bin:/opt/nvidia/nsight-compute-cli:${PATH}"
-export LD_LIBRARY_PATH="/usr/local/nvidia/lib:/usr/local/nvidia/lib64:${LD_LIBRARY_PATH}"
-export LIBRARY_PATH="/usr/local/cuda/lib64/stubs:${LIBRARY_PATH}"
+export PATH="/usr/local/cuda/bin:/opt/nvidia/nsight-compute-cli:${PATH:-}"
+export LD_LIBRARY_PATH="/usr/local/nvidia/lib:/usr/local/nvidia/lib64:${LD_LIBRARY_PATH:-}"
+export LIBRARY_PATH="/usr/local/cuda/lib64/stubs:${LIBRARY_PATH:-}"
 export NVIDIA_VISIBLE_DEVICES=all
 export NVIDIA_DRIVER_CAPABILITIES=compute,utility
 EOF
