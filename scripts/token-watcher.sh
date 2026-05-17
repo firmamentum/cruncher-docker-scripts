@@ -109,9 +109,13 @@ while true; do
         # Clean up HTTP listener
         kill "$HTTP_PID" 2>/dev/null || true
 
-        # Remove token file for security
+        # Remove token file — SSH key handles all future git auth
         rm -f "$TOKEN_FILE"
-        log "Token file removed for security."
+        log "Token file removed (SSH key now handles git auth)."
+
+        # Clean up any HTTPS credential artifacts
+        rm -f /root/.git-credentials
+        git config --global --unset credential.helper 2>/dev/null || true
 
         exit 0
     fi
